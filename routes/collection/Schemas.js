@@ -2,6 +2,7 @@ const { text } = require("body-parser");
 const Mongo=require("mongoose");
 const url="mongodb://localhost:27017/InfoDB";
 
+
 Mongo.connect(url,{useNewUrlParser:true,useUnifiedTopology:true},(err,res)=>{
     if(err) throw err;
     else{
@@ -23,10 +24,15 @@ photoid:{type:String,required:true}
 });
 
 const attendee = new Mongo.Schema({
+    _id:{type:Mongo.Schema.Types.ObjectId,required:true},
     fullName:{type:String,required:true},
     userId:{type:String,required:true},
-    Date:[{type:Date,required:true}],
-    value:[{type:String,required:true}]
+    attendance:
+        {   
+            date:{type:Date,required:true},
+            value:{type:Number,required:true}
+        }
+    
 })
 
 const Employee=Mongo.model("Employee",empSchema);

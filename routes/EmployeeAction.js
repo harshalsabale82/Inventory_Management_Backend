@@ -1,11 +1,13 @@
 const express=require("express");
 const mongoose=require("mongoose");
 const Crypt= require("cryptr");
-const saltedCrypt= new Crypt("Thisisthesaltforpassword");
+const saltedCrypt= new Crypt("Thisisthesaltforthepassword");
 const router=express.Router();
 const {employee}=require("./collection/Schemas");
+const {attendee}=require("./collection/Schemas")
 
 
+// make resgistration of the employee
 router.post("/registration",async(req,res)=>{
     var hashedPassword= await saltedCrypt.encrypt(req.body.password);
     
@@ -21,15 +23,25 @@ router.post("/registration",async(req,res)=>{
                                   photo: req.body.photo,
                                   photoid: req.body.photoid
                                 });
+    var attendanceSchema= new attendee({
+                                    _id:empschema._id,
+                                    fullName:req.body.fullName,
+                                    userId:req.body.userid,
+                                    attendance:req.body.attendance
+                                    });
 
         try {
-            const result= await empschema.save();
-            res.send(result);
-            console.log(result);
+            const result1= await empschema.save();
+            const result2= await attendanceSchema.save();
+            res.send("Success");
+            console.log(typeof(result));
+            
         } catch (error) {
             res.send(error);
         }
 });
+
+
 
 router.put("/update",async(req,res)=>{
     var hashedPassword= await saltedCrypt.encrypt(req.body.password);
@@ -46,6 +58,19 @@ router.put("/update",async(req,res)=>{
         }
 });
 
+router.put("/attendance",async(req,res)=>{
+    var obj=[];
+    for(var i=0;i<Object.keys(req.body).length;i++){
+        var getDoc=req.body[i]._id
+       var updatedValues= {$push:{attendance:{date:req.body[i].attendance.date,value:req.body[i].attendance.value}}};
+
+        var obj1= await attendee.updateOne({_id:getDoc},updatedValues);
+        obj.push(obj1);
+    }
+   // console.log(obj);
+    res.send(obj);
+});
+ //5fe99606ca26513afee14562,5fe999c169dea34b98d10f2d
 router.delete("/delete/:_id",async(req,res)=>{
 
         var response=await employee.deleteOne({_id:req.params}).then((err)=>{
@@ -64,6 +89,10 @@ router.get("/",async(req,res)=>{
        res.send(result); 
 })
 
+router.get("/attendance",async(req,res)=>{
+    var result = await attendee.find({});
+     res.send(result);
+});
 
 
 module.exports=router;
