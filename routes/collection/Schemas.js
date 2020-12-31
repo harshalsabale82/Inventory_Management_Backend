@@ -17,7 +17,7 @@ address:{type:String,required:true},
 contactno:{type:Number,required:true},
 department:{type:String,required:true},
 designation:{type:String,required:true},
-userid:{type:String,required:true},
+userid:{type:String,required:true,unique:true},
 password :{type:String,required:true},
 photo:{type:String,required:true},
 photoid:{type:String,required:true}
@@ -25,7 +25,6 @@ photoid:{type:String,required:true}
 
 const attendee = new Mongo.Schema({
     _id:{type:Mongo.Schema.Types.ObjectId,required:true},
-    fullName:{type:String,required:true},
     userId:{type:String,required:true},
     attendance:
         {   
@@ -35,10 +34,23 @@ const attendee = new Mongo.Schema({
     
 })
 
+var newVoucher= new Mongo.Schema({
+    voucherNo:{type:String,required:true,unique:true},
+    date:{type:date,required:true},
+    eventCompany:{type:String,required:true},
+    venue:{type:String,required:true},
+    contactPersonName:{type:Number,required:true},
+    contactPersonMobile:{type:String,required:true},
+    team:{userid:{type:String,required:true}},
+    vehicle:{type:String,required:true}
+});
+
 const Employee=Mongo.model("Employee",empSchema);
 const Attendee=Mongo.model("Attendee",attendee,"Attendance");
+const Voucher=Mongo.model("Voucher",newVoucher,"voucherDetails");
 
 module.exports={
     employee: Employee,
     attendee: Attendee,
+    voucher: Voucher
 }
