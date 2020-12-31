@@ -35,7 +35,7 @@ const attendee = new Mongo.Schema({
 
 var newVoucher= new Mongo.Schema({
     voucherNo:{type:String,required:true,unique:true},
-    date:{type:date,required:true},
+    date:{type:Date,required:true},
     eventCompany:{type:String,required:true},
     venue:{type:String,required:true},
     contactPersonName:{type:Number,required:true},
