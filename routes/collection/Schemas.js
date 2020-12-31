@@ -1,7 +1,6 @@
 const { text } = require("body-parser");
 const Mongo=require("mongoose");
-const url="mongodb://localhost:27017/InfoDB";
-
+const url="mongodb+srv://imuser_1:6j66NKam3Lt8uXHE@cluster0.mdzsd.mongodb.net/InfoDB?retryWrites=true&w=majority";
 
 Mongo.connect(url,{useNewUrlParser:true,useUnifiedTopology:true},(err,res)=>{
     if(err) throw err;
