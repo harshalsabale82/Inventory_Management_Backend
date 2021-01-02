@@ -11,28 +11,42 @@ router.post("/registration",async(req,res)=>{
     var hashedPassword= await saltedCrypt.encrypt(req.body.password);
     
     var empschema=new employee({
-                                  dateofjoining: req.body.dateofjoining,
-                                  fullName: req.body.fullName,
-                                  address:req.body.address,
-                                  contactno: req.body.contactno,
-                                  department:req.body.department,
-                                  designation:req.body.designation,
-                                  userid: req.body.userid,
-                                  password: hashedPassword,
-                                  photo: req.body.photo,
-                                  photoid: req.body.photoid
+                                dateofjoining:req.body.dateofjoining,
+                                fullName:req.body.fullName,
+                                address:req.body.address,
+                                contactno: req.body.contactno,
+                                department:req.body.department,
+                                designation:req.body.designation,
+                                userid:req.body.userid,
+                                password :req.body.password,
+                                photo: req.body.photo,
+                                photoid:req.body.photoid
                                 });
+
     var attendanceSchema= new attendee({
                                     _id:empschema._id,
                                     userId:req.body.userid,
-                                    attendance:req.body.attendance
+                                    attendance:""
                                     });
 
         try {
-            const result1= await empschema.save();
-            const result2= await attendanceSchema.save();
-            res.send("Success");
-            console.log(typeof(result));
+           const result1= await empschema.save((err,response)=>{
+            if(err){
+                console.log(err);
+            }else{
+                console.log("Document Saved!");
+            }
+
+           });
+            const result2= await attendanceSchema.save((err,response)=>{
+           if(err){
+                    console.log(err);
+                }else{
+                    console.log("Document Saved!");
+                }
+            });
+            
+            res.send(result2);
             
         } catch (error) {
             res.send(error);
@@ -84,6 +98,11 @@ router.delete("/delete/:_id",async(req,res)=>{
 
 router.get("/",async(req,res)=>{
   var result= await employee.find({});
+
+    for(var i=0;i<result.length;i++){
+        var decryptedPassword=saltedCrypt.decrypt(result[i].password);
+        result[i].password=decryptedPassword;
+    }
        res.send(result); 
 })
 
