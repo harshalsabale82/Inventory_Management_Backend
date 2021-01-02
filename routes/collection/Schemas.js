@@ -49,7 +49,7 @@ const Attendee=Mongo.model("Attendee",attendee,"Attendance");
 const Voucher=Mongo.model("Voucher",newVoucher,"voucherDetails");
 
 module.exports={
-    employee: Employee,
+    employee: Employee, 
     attendee: Attendee,
     voucher: Voucher
 }
