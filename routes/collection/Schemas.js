@@ -27,8 +27,8 @@ const attendee = new Mongo.Schema({
     userId:{type:String,required:true},
     attendance:
         {   
-            date:{type:Date,required:true},
-            value:{type:Number,required:true}
+            date:{type:Date,required:false},
+            value:{type:Number,required:false}
         }
     
 })
@@ -45,7 +45,7 @@ var newVoucher= new Mongo.Schema({
 });
 
 const Employee=Mongo.model("Employee",empSchema);
-const Attendee=Mongo.model("Attendee",attendee,"Attendance");
+const Attendee=Mongo.model("Attendee",attendee,"attendance");
 const Voucher=Mongo.model("Voucher",newVoucher,"voucherDetails");
 
 module.exports={
