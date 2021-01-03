@@ -18,7 +18,7 @@ router.post("/registration",async(req,res)=>{
                                 department:req.body.department,
                                 designation:req.body.designation,
                                 userid:req.body.userid,
-                                password :req.body.password,
+                                password :hashedPassword,
                                 photo: req.body.photo,
                                 photoid:req.body.photoid
                                 });
