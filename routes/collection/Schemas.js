@@ -1,6 +1,7 @@
 const { text } = require("body-parser");
 const Mongo=require("mongoose");
 const url="mongodb+srv://imuser_1:6j66NKam3Lt8uXHE@cluster0.mdzsd.mongodb.net/InfoDB?retryWrites=true&w=majority";
+//const url="mongodb://localhost:27017/InfoDB"
 
 Mongo.connect(url,{useNewUrlParser:true,useUnifiedTopology:true},(err,res)=>{
     if(err) throw err;
@@ -8,6 +9,7 @@ Mongo.connect(url,{useNewUrlParser:true,useUnifiedTopology:true},(err,res)=>{
         console.log("Connected to database");
     }
 });
+
 
 const empSchema=new Mongo.Schema({
 dateofjoining:{type:Date,required:true},

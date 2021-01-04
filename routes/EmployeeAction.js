@@ -50,7 +50,7 @@ router.post("/registration",async(req,res)=>{
             
         } catch (error) {
             res.send(error);
-        }
+        }   
 });
 
 
