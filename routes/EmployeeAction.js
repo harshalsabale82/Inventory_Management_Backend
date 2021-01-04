@@ -2,9 +2,16 @@ const express=require("express");
 const Crypt= require("cryptr");
 const saltedCrypt= new Crypt("Thisisthesaltforthepassword");
 const router=express.Router();
+const multer= require("multer");
 const {employee}=require("./collection/Schemas");
 const {attendee}=require("./collection/Schemas");
-
+var foldername
+const uploads= multer.diskStorage({
+    destination:(req,file,callback)=>{
+        callback('./uploads'+foldername+'/');
+    }
+});
+ 
 
 // make resgistration of the employee
 router.post("/registration",async(req,res)=>{
@@ -19,8 +26,8 @@ router.post("/registration",async(req,res)=>{
                                 designation:req.body.designation,
                                 userid:req.body.userid,
                                 password :hashedPassword,
-                                photo: req.body.photo,
-                                photoid:req.body.photoid
+                                photo:"",
+                                photoid:""
                                 });
 
     var attendanceSchema= new attendee({
@@ -74,7 +81,7 @@ router.put("/attendance",async(req,res)=>{
     var obj=[];
     for(var i=0;i<Object.keys(req.body).length;i++){
         var getDoc=req.body[i]._id
-       var updatedValues= {$push:{attendance:{date:req.body[i].attendance.date,value:req.body[i].attendance.value}}};
+       var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}}};
 
         var obj1= await attendee.updateOne({_id:getDoc},updatedValues);
         obj.push(obj1);
