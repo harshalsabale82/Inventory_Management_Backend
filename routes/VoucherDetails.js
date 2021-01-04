@@ -2,7 +2,7 @@ const express= require("express");
 const router=express.Router();
 const {voucher}=require("./collection/Schemas")
 
-router.post("/",async(req,res)=>{
+router.post("/Voucher",async(req,res)=>{
     var newVoucher= new voucher({
                                 voucherNo: req.body.voucherNo,
                                 date: req.body.date,
@@ -22,7 +22,7 @@ router.post("/",async(req,res)=>{
             }
 });
 
-router.get("/",async(req,res)=>{
+router.get("/Voucher",async(req,res)=>{
         try {
             var result=voucher.find({});
             res.sendDate(result);    

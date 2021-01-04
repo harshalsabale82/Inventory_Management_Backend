@@ -3,7 +3,7 @@ const Crypt= require("cryptr");
 const saltedCrypt= new Crypt("Thisisthesaltforthepassword");
 const router=express.Router();
 const {employee}=require("./collection/Schemas");
-const {attendee}=require("./collection/Schemas")
+const {attendee}=require("./collection/Schemas");
 
 
 // make resgistration of the employee
