@@ -2,19 +2,29 @@ const express=require("express");
 const Crypt= require("cryptr");
 const saltedCrypt= new Crypt("Thisisthesaltforthepassword");
 const router=express.Router();
-const multer= require("multer");
 const {employee}=require("./collection/Schemas");
 const {attendee}=require("./collection/Schemas");
-var foldername
-const uploads= multer.diskStorage({
+const fs= require('fs');
+const path=require('path');
+const multer=require("multer");
+
+var dirpath="/home/shinigami/Documents/Dixit/Images/"
+
+const storage=multer.diskStorage({
     destination:(req,file,callback)=>{
-        callback('./uploads'+foldername+'/');
+        
+        fs.mkdir(path.join(dirpath,req.body.userid),err=>{});
+        callback(null,dirpath+req.body.userid);
+    },
+    filename:(req,file,callback)=>{
+        callback(null,file.originalname);
     }
 });
- 
 
+ const uploads=multer({storage:storage});
+ 
 // make resgistration of the employee
-router.post("/registration",async(req,res)=>{
+router.post("/registration",uploads.any(),async(req,res)=>{
     var hashedPassword= await saltedCrypt.encrypt(req.body.password);
     
     var empschema=new employee({
@@ -26,38 +36,43 @@ router.post("/registration",async(req,res)=>{
                                 designation:req.body.designation,
                                 userid:req.body.userid,
                                 password :hashedPassword,
-                                photo:"",
-                                photoid:""
+                                photo:req.files[0].path,
+                                photoid:req.files[1].path
                                 });
+
 
     var attendanceSchema= new attendee({
                                     _id:empschema._id,
                                     userId:req.body.userid,
                                     attendance:""
                                     });
+var obj=[]
 
         try {
-           const result1= await empschema.save((err,response)=>{
-            if(err){
-                console.log(err);
-            }else{
-                console.log("Document Saved!");
-            }
 
+            const result1= await empschema.save((err,response)=>{
+                if(err){
+                    console.log(err);
+                }else{
+                    console.log("Document Saved!");
+                }
            });
-            const result2= await attendanceSchema.save((err,response)=>{
-           if(err){
+
+             const result2= await attendanceSchema.save((err,response)=>{
+                if(err){
                     console.log(err);
                 }else{
                     console.log("Document Saved!");
                 }
             });
-            
-            res.send(result2);
+            obj.push(result1);
+            obj.push(result2);
+            res.send(obj);
             
         } catch (error) {
             res.send(error);
         }   
+     
 });
 
 
