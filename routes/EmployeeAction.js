@@ -7,6 +7,7 @@ const {attendee}=require("./collection/Schemas");
 const fs= require('fs');
 const path=require('path');
 const multer=require("multer");
+const formData= require("form-data");
 
 var dirpath="/home/shinigami/Documents/Dixit/Images/"
 
@@ -54,7 +55,7 @@ var obj=[]
                 if(err){
                     console.log(err);
                 }else{
-                    console.log("Document Saved!");
+                    return response;
                 }
            });
 
@@ -62,7 +63,7 @@ var obj=[]
                 if(err){
                     console.log(err);
                 }else{
-                    console.log("Document Saved!");
+                    return response;
                 }
             });
             obj.push(result1);
@@ -119,13 +120,27 @@ router.delete("/delete/:_id",async(req,res)=>{
 });
 
 router.get("/",async(req,res)=>{
+  let doc=[];  
   var result= await employee.find({});
 
     for(var i=0;i<result.length;i++){
+        var form= new formData();
+
         var decryptedPassword=saltedCrypt.decrypt(result[i].password);
-        result[i].password=decryptedPassword;
+        form.append("_id",JSON.stringify(result[i]._id))
+        form.append("dateofjoining",JSON.stringify(result[i].dateofjoining))
+        form.append("fullName",result[i].fullName);
+        form.append("address",result[i].address);
+        form.append("contactno",result[i].contactno);
+        form.append("department",result[i].department);
+        form.append("designation",result[i].designation);
+        form.append("userid",result[i].userid);
+        form.append("password",decryptedPassword);
+        form.append("photo",fs.createReadStream(result[i].photo,{encoding:"base64"}));
+        form.append("photoId",fs.createReadStream(result[i].photoid,{encoding:"base64"}));
+        doc.push(form);
     }
-       res.send(result); 
+       res.send(doc); 
 })
 
 router.get("/attendance",async(req,res)=>{
