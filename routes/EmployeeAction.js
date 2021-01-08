@@ -4,30 +4,25 @@ const saltedCrypt= new Crypt("Thisisthesaltforthepassword");
 const router=express.Router();
 const {employee}=require("./collection/Schemas");
 const {attendee}=require("./collection/Schemas");
-const fs= require('fs');
-const path=require('path');
 const multer=require("multer");
-const formData= require("form-data");
 
-var dirpath="/home/shinigami/Documents/Dixit/Images/"
 
-const storage=multer.diskStorage({
-    destination:(req,file,callback)=>{
+// const storage=multer.diskStorage({
+//     destination:(req,file,callback)=>{
         
-        fs.mkdir(path.join(dirpath,req.body.userid),err=>{});
-        callback(null,dirpath+req.body.userid);
-    },
-    filename:(req,file,callback)=>{
-        callback(null,file.originalname);
-    }
-});
+//         fs.mkdir(path.join(dirpath,req.body.userid),err=>{});
+//         callback(null,dirpath+req.body.userid);
+//     },
+//     filename:(req,file,callback)=>{
+//         callback(null,file.originalname);
+//     }
+// });
 
- const uploads=multer({storage:storage});
- 
+const upload=multer({dest: 'uploads/'});
+
 // make resgistration of the employee
-router.post("/registration",uploads.any(),async(req,res)=>{
-    var hashedPassword= await saltedCrypt.encrypt(req.body.password);
-    
+router.post("/registration",upload.any(),async(req,res)=>{
+    var hashedPassword= saltedCrypt.encrypt(req.body.password);
     var empschema=new employee({
                                 dateofjoining:req.body.dateofjoining,
                                 fullName:req.body.fullName,
@@ -47,33 +42,34 @@ router.post("/registration",uploads.any(),async(req,res)=>{
                                     userId:req.body.userid,
                                     attendance:""
                                     });
-var obj=[]
-
-        try {
-
-            const result1= await empschema.save((err,response)=>{
-                if(err){
-                    console.log(err);
-                }else{
-                    return response;
-                }
-           });
-
-             const result2= await attendanceSchema.save((err,response)=>{
-                if(err){
-                    console.log(err);
-                }else{
-                    return response;
-                }
+        empschema
+        .save()
+        .then((result) => {
+            console.log(result);
+            res.status(201).json({
+                message: "Employee Registered Successfully"})
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json({
+                error: err,
             });
-            obj.push(result1);
-            obj.push(result2);
-            res.send(obj);
-            
-        } catch (error) {
-            res.send(error);
-        }   
-     
+        });
+
+        attendanceSchema
+        .save()
+        .then((result) => {
+            console.log(result);
+            res.status(201).json({
+                message: "Attendee Added successfully"})
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).json({
+                error: err,
+            });
+        });
+    
 });
 
 
@@ -120,27 +116,12 @@ router.delete("/delete/:_id",async(req,res)=>{
 });
 
 router.get("/",async(req,res)=>{
-  let doc=[];  
-  var result= await employee.find({});
-
+    var result = await employee.find({});
     for(var i=0;i<result.length;i++){
-        var form= new formData();
-
         var decryptedPassword=saltedCrypt.decrypt(result[i].password);
-        form.append("_id",JSON.stringify(result[i]._id))
-        form.append("dateofjoining",JSON.stringify(result[i].dateofjoining))
-        form.append("fullName",result[i].fullName);
-        form.append("address",result[i].address);
-        form.append("contactno",result[i].contactno);
-        form.append("department",result[i].department);
-        form.append("designation",result[i].designation);
-        form.append("userid",result[i].userid);
-        form.append("password",decryptedPassword);
-        form.append("photo",fs.createReadStream(result[i].photo,{encoding:"base64"}));
-        form.append("photoId",fs.createReadStream(result[i].photoid,{encoding:"base64"}));
-        doc.push(form);
+        result[i].password=decryptedPassword;
     }
-       res.send(doc); 
+    res.send(result); 
 })
 
 router.get("/attendance",async(req,res)=>{
