@@ -8,9 +8,22 @@ const multer=require("multer");
 const path=require("path");
 const fs=require("fs");
 
+const storage=multer.diskStorage({
+    destination:(req,file,callback)=>{
+        var dirpath= "./uploads/"+req.body.userid;
+        
+        if(!fs.existsSync(dirpath)){
+           return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
+           console.log(dirpath);
+        }
+        callback(null,dirpath)
+    },
+    filename:(req,file,callback)=>{
+        callback(null,file.originalname);
+    }
+});
 
-
-const upload=multer({dest:'uploads/'});
+const upload=multer({storage});
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
@@ -37,12 +50,11 @@ router.post("/registration",upload.any(),async(req,res)=>{
                                     halfDay:0,
                                     absent:0
                                     });
-        empschema
+
+    empschema
         .save()
         .then((result) => {
             console.log(result);
-            res.send(201).json({
-                message: "Employee Registered Successfully"})
         })
         .catch((err) => {
             console.log(err);
@@ -51,12 +63,11 @@ router.post("/registration",upload.any(),async(req,res)=>{
             });
         });
 
-        attendanceSchema
+    attendanceSchema
         .save()
         .then((result) => {
-            console.log(result);
-            res.send(201).json({
-                message: "Attendee Added successfully"})
+            res.status(201).json({
+                message: "Employee and Attendee created successfully"})
         })
         .catch((err) => {
             console.log(err);
@@ -67,23 +78,61 @@ router.post("/registration",upload.any(),async(req,res)=>{
         
 });
 
+const updateImage=multer.diskStorage({
+    destination:(req,file,callback)=>{
+        var photo=employee.findOne({_id:req.body._id},{"photo":1});
+        var photoid=employee.findOne({_id:req.body._id},{"photoid":1});
+        var userid=employee.findOne({_id:req.body._id},{"photoid":1});
 
+        var dirpath= "./uploads/"+req.body.userid;
 
-router.put("/update",async(req,res)=>{
-    var hashedPassword= await saltedCrypt.encrypt(req.body.password);
-
-    var getDoc={_id:req.body._id};
-    var updatedValues={$set:{fullName: req.body.fullName,contactNo: req.body.contactNo,
-                            password: hashedPassword}};
-    
-        try {
-           var result= await employee.updateOne(getDoc,updatedValues);
-           res.status(200).json({
-               message:" Employee Details Updated"
-           });
-        } catch (error) {
-            res.send(error);
+        if(userid!=req.body.userid){
+            var newpath="./uploads"+userid;
+            fs.renameSync(dirpath,newpath);
+            dirpath=newpath;
         }
+
+        if(photo!=req.photo){
+            fs.unlink(result.photo);
+        }
+        if(photoid!=req.photoid){
+            fs.unlink(result.photoid);
+        }
+        callback(null,dirpath);
+    },
+    filename:(req,file,callback)=>{
+        callback(null,file.originalname);
+    }
+});
+
+var update=multer({updateImage});
+
+router.put("/update",update.any(),async(req,res)=>{
+    var hashedPassword= saltedCrypt.encrypt(req.body.password);
+    var photopath,photoid;   
+    console.log(req.body);
+    console.log(req.files[0]);
+    var getDoc={_id:req.body._id};
+    
+    var updatedValues={$set:{   fullName: req.body.fullName, 
+                                address: req.body.address, 
+                                contactNo: req.body.contactNo,
+                                department:req.body.department,
+                                designation:req.body.designation,
+                                password: hashedPassword
+                                }};
+    
+    try {
+        var result= await employee.updateOne(getDoc,updatedValues,(err,res)=>{
+            if(err)
+                throw err;
+            else
+            console.log("updated")
+        });
+        res.send(result);
+    } catch (error) {
+        res.send(error);
+    }
 });
 
 router.put("/attendance",async(req,res)=>{
@@ -111,15 +160,26 @@ try{
 }
 });
 
-router.delete("/delete/:_id",async(req,res)=>{
-
-        var response=await employee.deleteOne({_id:req.params}).then((err)=>{
+router.delete("/delete",async(req,res)=>{
+       var dirname=employee.findOne({_id:req.params},{'userid':1});
+       fs.rm('./uploads'+dirname,{recursive:true,force:true});
+         employee.deleteOne({_id:req.params}).then((err)=>{
                 if(!err){
                     return "Entry deleted Successfully!";
                 }else{
                     return err;
-                }
+                }        
         });
+
+            attendee.deleteOne({_id:req.params}).then((err)=>{
+                if(err){
+                    res.send(err);
+                }else{
+                    res.send(200).json({
+                        message: "Entry deleted Successfully!"
+                })
+                }
+            })
 
         res.send(response);
 });
@@ -135,7 +195,7 @@ router.get("/",async(req,res)=>{
 
 router.get("/attendance",async(req,res)=>{
     var result = await attendee.find({});
-     res.send(result);
+    res.send(result);
 });
 
 
