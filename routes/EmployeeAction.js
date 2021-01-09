@@ -6,19 +6,16 @@ const {employee}=require("./collection/Schemas");
 const {attendee}=require("./collection/Schemas");
 const multer=require("multer");
 
+const storage=multer.diskStorage({
+    destination:(req,file,callback)=>{
+        callback(null,'./uploads');
+    },
+    filename:(req,file,callback)=>{
+        callback(null,file.originalname);
+    }
+});
 
-// const storage=multer.diskStorage({
-//     destination:(req,file,callback)=>{
-        
-//         fs.mkdir(path.join(dirpath,req.body.userid),err=>{});
-//         callback(null,dirpath+req.body.userid);
-//     },
-//     filename:(req,file,callback)=>{
-//         callback(null,file.originalname);
-//     }
-// });
-
-const upload=multer({dest: 'uploads/'});
+const upload=multer({storage: storage});
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
@@ -42,12 +39,11 @@ router.post("/registration",upload.any(),async(req,res)=>{
                                     userId:req.body.userid,
                                     attendance:""
                                     });
-        empschema
+
+    empschema
         .save()
         .then((result) => {
             console.log(result);
-            res.status(201).json({
-                message: "Employee Registered Successfully"})
         })
         .catch((err) => {
             console.log(err);
@@ -56,12 +52,11 @@ router.post("/registration",upload.any(),async(req,res)=>{
             });
         });
 
-        attendanceSchema
+    attendanceSchema
         .save()
         .then((result) => {
-            console.log(result);
             res.status(201).json({
-                message: "Attendee Added successfully"})
+                message: "Employee and Attendee created successfully"})
         })
         .catch((err) => {
             console.log(err);
@@ -72,28 +67,36 @@ router.post("/registration",upload.any(),async(req,res)=>{
     
 });
 
+
+router.post('/updateImg', (req, res) =>{
+
+})
 
 
 router.put("/update",async(req,res)=>{
     var hashedPassword= await saltedCrypt.encrypt(req.body.password);
 
     var getDoc={_id:req.body._id};
-    var updatedValues={$set:{fullName: req.body.fullName,contactNo: req.body.contactNo,
-                            password: hashedPassword}};
+    var updatedValues={$set:{   fullName: req.body.fullName, 
+                                address: req.body.address, 
+                                contactNo: req.body.contactNo,
+                                department:req.body.department,
+                                designation:req.body.designation,
+                                password: hashedPassword}};
     
-        try {
-           var result= await employee.updateOne(getDoc,updatedValues);
-           res.send(result);
-        } catch (error) {
-            res.send(error);
-        }
+    try {
+        var result= await employee.updateOne(getDoc,updatedValues);
+        res.send(result);
+    } catch (error) {
+        res.send(error);
+    }
 });
 
 router.put("/attendance",async(req,res)=>{
     var obj=[];
     for(var i=0;i<Object.keys(req.body).length;i++){
         var getDoc=req.body[i]._id
-       var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}}};
+        var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}}};
 
         var obj1= await attendee.updateOne({_id:getDoc},updatedValues);
         obj.push(obj1);
@@ -126,7 +129,7 @@ router.get("/",async(req,res)=>{
 
 router.get("/attendance",async(req,res)=>{
     var result = await attendee.find({});
-     res.send(result);
+    res.send(result);
 });
 
 
