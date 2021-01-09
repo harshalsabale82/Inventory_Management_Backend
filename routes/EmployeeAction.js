@@ -10,7 +10,6 @@ const fs=require("fs");
 
 const storage=multer.diskStorage({
     destination:(req,file,callback)=>{
-<<<<<<< HEAD
         var dirpath= "./uploads/"+req.body.userid;
         
         if(!fs.existsSync(dirpath)){
@@ -18,20 +17,13 @@ const storage=multer.diskStorage({
            console.log(dirpath);
         }
         callback(null,dirpath)
-=======
-        callback(null,'./uploads');
->>>>>>> 9ea348a5faadd600cb2d9b0e458af12295a1e9e5
     },
     filename:(req,file,callback)=>{
         callback(null,file.originalname);
     }
 });
 
-<<<<<<< HEAD
 const upload=multer({storage});
-=======
-const upload=multer({storage: storage});
->>>>>>> 9ea348a5faadd600cb2d9b0e458af12295a1e9e5
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
@@ -100,7 +92,6 @@ const updateImage=multer.diskStorage({
             dirpath=newpath;
         }
 
-<<<<<<< HEAD
         if(photo!=req.photo){
             fs.unlink(result.photo);
         }
@@ -113,12 +104,6 @@ const updateImage=multer.diskStorage({
         callback(null,file.originalname);
     }
 });
-=======
-router.post('/updateImg', (req, res) =>{
-
-})
-
->>>>>>> 9ea348a5faadd600cb2d9b0e458af12295a1e9e5
 
 var update=multer({updateImage});
 
@@ -128,7 +113,6 @@ router.put("/update",update.any(),async(req,res)=>{
     console.log(req.body);
     console.log(req.files[0]);
     var getDoc={_id:req.body._id};
-<<<<<<< HEAD
     
     var updatedValues={$set:{   fullName: req.body.fullName, 
                                 address: req.body.address, 
@@ -145,17 +129,6 @@ router.put("/update",update.any(),async(req,res)=>{
             else
             console.log("updated")
         });
-=======
-    var updatedValues={$set:{   fullName: req.body.fullName, 
-                                address: req.body.address, 
-                                contactNo: req.body.contactNo,
-                                department:req.body.department,
-                                designation:req.body.designation,
-                                password: hashedPassword}};
-    
-    try {
-        var result= await employee.updateOne(getDoc,updatedValues);
->>>>>>> 9ea348a5faadd600cb2d9b0e458af12295a1e9e5
         res.send(result);
     } catch (error) {
         res.send(error);
@@ -167,7 +140,6 @@ try{
     var obj=[];
     for(var i=0;i<Object.keys(req.body).length;i++){
         var getDoc=req.body[i]._id
-<<<<<<< HEAD
         
         if(req.body[i].Attendance.value==1){
             var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}},$inc:{present:1}};
@@ -176,9 +148,6 @@ try{
         }else{
             var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}},$inc:{absent:1}};
         }
-=======
-        var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}}};
->>>>>>> 9ea348a5faadd600cb2d9b0e458af12295a1e9e5
 
         var obj1= await attendee.updateOne({_id:getDoc},updatedValues);
         obj.push(obj1);
