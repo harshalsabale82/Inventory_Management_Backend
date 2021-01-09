@@ -5,20 +5,12 @@ const router=express.Router();
 const {employee}=require("./collection/Schemas");
 const {attendee}=require("./collection/Schemas");
 const multer=require("multer");
+const path=require("path");
+const fs=require("fs");
 
 
-// const storage=multer.diskStorage({
-//     destination:(req,file,callback)=>{
-        
-//         fs.mkdir(path.join(dirpath,req.body.userid),err=>{});
-//         callback(null,dirpath+req.body.userid);
-//     },
-//     filename:(req,file,callback)=>{
-//         callback(null,file.originalname);
-//     }
-// });
 
-const upload=multer({dest: 'uploads/'});
+const upload=multer({dest:'uploads/'});
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
@@ -40,18 +32,21 @@ router.post("/registration",upload.any(),async(req,res)=>{
     var attendanceSchema= new attendee({
                                     _id:empschema._id,
                                     userId:req.body.userid,
-                                    attendance:""
+                                    attendance:"",
+                                    present:0,
+                                    halfDay:0,
+                                    absent:0
                                     });
         empschema
         .save()
         .then((result) => {
             console.log(result);
-            res.status(201).json({
+            res.send(201).json({
                 message: "Employee Registered Successfully"})
         })
         .catch((err) => {
             console.log(err);
-            res.status(500).json({
+            res.send(500).json({
                 error: err,
             });
         });
@@ -60,16 +55,16 @@ router.post("/registration",upload.any(),async(req,res)=>{
         .save()
         .then((result) => {
             console.log(result);
-            res.status(201).json({
+            res.send(201).json({
                 message: "Attendee Added successfully"})
         })
         .catch((err) => {
             console.log(err);
-            res.status(500).json({
+            res.send(500).json({
                 error: err,
             });
         });
-    
+        
 });
 
 
@@ -83,23 +78,37 @@ router.put("/update",async(req,res)=>{
     
         try {
            var result= await employee.updateOne(getDoc,updatedValues);
-           res.send(result);
+           res.status(200).json({
+               message:" Employee Details Updated"
+           });
         } catch (error) {
             res.send(error);
         }
 });
 
 router.put("/attendance",async(req,res)=>{
+try{
     var obj=[];
     for(var i=0;i<Object.keys(req.body).length;i++){
         var getDoc=req.body[i]._id
-       var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}}};
+        
+        if(req.body[i].Attendance.value==1){
+            var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}},$inc:{present:1}};
+        }else if(req.body[i].Attendance.value==0){   
+            var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}},$inc:{halfDay:1}};
+        }else{
+            var updatedValues= {$push:{attendance:{date:req.body[i].Attendance.date,value:req.body[i].Attendance.value}},$inc:{absent:1}};
+        }
 
         var obj1= await attendee.updateOne({_id:getDoc},updatedValues);
         obj.push(obj1);
     }
-
-    res.send(obj);
+    res.status(200).json({
+        message:"Attendance marked"
+    });
+}catch(error){
+    res.send(error);
+}
 });
 
 router.delete("/delete/:_id",async(req,res)=>{
