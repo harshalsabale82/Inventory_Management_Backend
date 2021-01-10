@@ -7,14 +7,15 @@ const {attendee}=require("./collection/Schemas");
 const multer=require("multer");
 const path=require("path");
 const fs=require("fs");
+const { response } = require("express");
 
 const storage=multer.diskStorage({
     destination:(req,file,callback)=>{
+
         var dirpath= "./uploads/"+req.body.userid;
         
         if(!fs.existsSync(dirpath)){
            return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
-           console.log(dirpath);
         }
         callback(null,dirpath)
     },
@@ -27,6 +28,7 @@ const upload=multer({storage});
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
+    console.log(req.files);
     var hashedPassword= saltedCrypt.encrypt(req.body.password);
     var empschema=new employee({
                                 dateofjoining:req.body.dateofjoining,
@@ -80,25 +82,12 @@ router.post("/registration",upload.any(),async(req,res)=>{
 
 const updateImage=multer.diskStorage({
     destination:(req,file,callback)=>{
-        var photo=employee.findOne({_id:req.body._id},{"photo":1});
-        var photoid=employee.findOne({_id:req.body._id},{"photoid":1});
-        var userid=employee.findOne({_id:req.body._id},{"photoid":1});
+        var dirpath='./upload'+req.body.userid
 
-        var dirpath= "./uploads/"+req.body.userid;
-
-        if(userid!=req.body.userid){
-            var newpath="./uploads"+userid;
-            fs.renameSync(dirpath,newpath);
-            dirpath=newpath;
-        }
-
-        if(photo!=req.photo){
-            fs.unlink(result.photo);
-        }
-        if(photoid!=req.photoid){
-            fs.unlink(result.photoid);
-        }
-        callback(null,dirpath);
+        if(!fs.existsSync(dirpath)){
+            return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
+         }
+         callback(null,dirpath)
     },
     filename:(req,file,callback)=>{
         callback(null,file.originalname);
@@ -107,11 +96,11 @@ const updateImage=multer.diskStorage({
 
 var update=multer({updateImage});
 
-router.put("/update",update.any(),async(req,res)=>{
-    var hashedPassword= saltedCrypt.encrypt(req.body.password);
-    var photopath,photoid;   
-    console.log(req.body);
-    console.log(req.files[0]);
+router.post("/update",update.any(),async(req,res)=>{
+    console.log(req.files);
+    //console.log(req.body);*/
+    var hashedPassword=  saltedCrypt.encrypt(req.body.password);
+
     var getDoc={_id:req.body._id};
     
     var updatedValues={$set:{   fullName: req.body.fullName, 
@@ -161,27 +150,32 @@ try{
 });
 
 router.delete("/delete",async(req,res)=>{
-       var dirname=employee.findOne({_id:req.params},{'userid':1});
-       fs.rm('./uploads'+dirname,{recursive:true,force:true});
-         employee.deleteOne({_id:req.params}).then((err)=>{
-                if(!err){
-                    return "Entry deleted Successfully!";
-                }else{
-                    return err;
-                }        
+        
+        var dirName =await employee.findOne({_id:req.body._id},{'userid':1,'_id':0});
+            
+         fs.rm('./uploads/'+dirName.userid,{recursive:true,force:true},(err)=>{
+             if(err){
+                 console.log(err);
+             }
+         });
+
+         await employee.deleteOne({_id:req.body._id},(err)=>{
+             if(!err){
+            console.log("Entry deleted Successfully!");
+            }else{
+                console.log(err);
+            }    
         });
 
-            attendee.deleteOne({_id:req.params}).then((err)=>{
+           await attendee.deleteOne({_id:req.body._id},(err)=>{
                 if(err){
                     res.send(err);
-                }else{
-                    res.send(200).json({
-                        message: "Entry deleted Successfully!"
-                })
-                }
-            })
-
-        res.send(response);
+                }else(
+                    res.status(202).json({
+                        message:'Entry Deleted'
+                    })
+                )
+            });       
 });
 
 router.get("/",async(req,res)=>{
