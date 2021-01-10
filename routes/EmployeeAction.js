@@ -9,14 +9,42 @@ const path=require("path");
 const fs=require("fs");
 const { response } = require("express");
 
+
 const storage=multer.diskStorage({
     destination:(req,file,callback)=>{
-
+            
         var dirpath= "./uploads/"+req.body.userid;
-        
-        if(!fs.existsSync(dirpath)){
-           return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
+                  
+        if(fs.existsSync(dirpath)){
+
+            if(file.originalname=='photo'){
+                
+                employee.findOne({_id:req.body._id},{'photo':1,'_id':0})
+                    .then((response)=>{
+
+                        fs.rm(response.photo,(err)=>{
+                            console.log(err)
+                        });
+                        
+                    }).catch(err=>{console.log(err)});
+                
+
+            }else if(file.originalname=='photoId'){
+
+                 employee.findOne({_id:req.body._id},{'photoid':1,'_id':0})
+                    .then((response)=>{
+                        fs.rm(response.photoid,(err)=>{
+                            console.log(err);
+                        });
+                    }).catch(err=>{
+                        console.log(err);
+                    });
+            }
+        }else{
+
+            return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
         }
+
         callback(null,dirpath)
     },
     filename:(req,file,callback)=>{
@@ -80,25 +108,9 @@ router.post("/registration",upload.any(),async(req,res)=>{
         
 });
 
-const updateImage=multer.diskStorage({
-    destination:(req,file,callback)=>{
-        var dirpath='./upload'+req.body.userid
 
-        if(!fs.existsSync(dirpath)){
-            return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
-         }
-         callback(null,dirpath)
-    },
-    filename:(req,file,callback)=>{
-        callback(null,file.originalname);
-    }
-});
-
-var update=multer({updateImage});
-
-router.post("/update",update.any(),async(req,res)=>{
-    console.log(req.files);
-    //console.log(req.body);*/
+router.put("/update",upload.any(),async(req,res)=>{
+    
     var hashedPassword=  saltedCrypt.encrypt(req.body.password);
 
     var getDoc={_id:req.body._id};
@@ -108,7 +120,7 @@ router.post("/update",update.any(),async(req,res)=>{
                                 contactNo: req.body.contactNo,
                                 department:req.body.department,
                                 designation:req.body.designation,
-                                password: hashedPassword
+                                password: hashedPassword,
                                 }};
     
     try {
