@@ -14,24 +14,20 @@ const storage=multer.diskStorage({
     destination:(req,file,callback)=>{
             
         var dirpath= "./uploads/"+req.body.userid;
-                  
-        if(fs.existsSync(dirpath)){
 
-            if(file.originalname=='photo'){
-                
+        if(fs.existsSync(dirpath)){
+            if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) === 'photo'){
                 employee.findOne({_id:req.body._id},{'photo':1,'_id':0})
                     .then((response)=>{
-
                         fs.rm(response.photo,(err)=>{
                             console.log(err)
                         });
                         
                     }).catch(err=>{console.log(err)});
                 
-
-            }else if(file.originalname=='photoId'){
-
-                 employee.findOne({_id:req.body._id},{'photoid':1,'_id':0})
+            }
+            else if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) ==='photoId'){
+                employee.findOne({_id:req.body._id},{'photoid':1,'_id':0})
                     .then((response)=>{
                         fs.rm(response.photoid,(err)=>{
                             console.log(err);
@@ -41,8 +37,7 @@ const storage=multer.diskStorage({
                     });
             }
         }else{
-
-            return fs.mkdirSync(dirpath,error=> callback(error,dirpath));
+            return fs.mkdirSync(dirpath, error => callback(error,dirpath));
         }
 
         callback(null,dirpath)
@@ -114,14 +109,49 @@ router.put("/update",upload.any(),async(req,res)=>{
     var hashedPassword=  saltedCrypt.encrypt(req.body.password);
 
     var getDoc={_id:req.body._id};
-    
-    var updatedValues={$set:{   fullName: req.body.fullName, 
-                                address: req.body.address, 
-                                contactNo: req.body.contactNo,
-                                department:req.body.department,
-                                designation:req.body.designation,
-                                password: hashedPassword,
+    if(req.files.length === 1 && req.files[0].fieldname === 'photo')
+    {
+        var updatedValues={$set:{   fullName: req.body.fullName, 
+                                    address: req.body.address, 
+                                    contactNo: req.body.contactNo,
+                                    department:req.body.department,
+                                    designation:req.body.designation,
+                                    password: hashedPassword,
+                                    photo: req.files[0].path
                                 }};
+    }
+    else if(req.files.length === 1 && req.files[0].fieldname === 'photoId'){
+        var updatedValues={$set:{   fullName: req.body.fullName, 
+                                    address: req.body.address, 
+                                    contactNo: req.body.contactNo,
+                                    department:req.body.department,
+                                    designation:req.body.designation,
+                                    password: hashedPassword,
+                                    photoid: req.files[0].path
+                                }};
+    }
+    else if(req.files.length === 2){
+        var updatedValues={$set:{   fullName: req.body.fullName, 
+                                    address: req.body.address, 
+                                    contactNo: req.body.contactNo,
+                                    department:req.body.department,
+                                    designation:req.body.designation,
+                                    password: hashedPassword,
+                                    photo: req.files[0].path,
+                                    photoid: req.files[1].path
+                                }};
+    }
+    else {
+        var updatedValues={$set:{   fullName: req.body.fullName, 
+                                    address: req.body.address, 
+                                    contactNo: req.body.contactNo,
+                                    department:req.body.department,
+                                    designation:req.body.designation,
+                                    password: hashedPassword
+                                }};
+    }
+
+    
     
     try {
         var result= await employee.updateOne(getDoc,updatedValues,(err,res)=>{
@@ -199,9 +229,13 @@ router.get("/",async(req,res)=>{
     res.send(result); 
 })
 
-router.get("/attendance",async(req,res)=>{
-    var result = await attendee.find({});
-    res.send(result);
+router.get("/attendance/:id",async(req,res)=>{
+    await attendee.findById(req.params.id)
+    .then(empFound => {
+        if(!empFound){ return res.status(404).end()}
+        return res.send(empFound)
+    })
+    .catch(err => console.log(err))
 });
 
 
