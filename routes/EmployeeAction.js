@@ -7,37 +7,32 @@ const {attendee}=require("./collection/Schemas");
 const multer=require("multer");
 const path=require("path");
 const fs=require("fs");
-const { response } = require("express");
+
 
 
 const storage=multer.diskStorage({
-    destination:(req,file,callback)=>{
+    destination:async(req,file,callback)=>{
             
         var dirpath= "./uploads/"+req.body.userid;
-
-        if(fs.existsSync(dirpath)){
+        
+        if(fs.existsSync(dirpath)==true){
             if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) === 'photo'){
-                employee.findOne({_id:req.body._id},{'photo':1,'_id':0})
-                    .then((response)=>{
-                        fs.rm(response.photo,(err)=>{
-                            console.log(err)
-                        });
-                        
-                    }).catch(err=>{console.log(err)});
-                
-            }
-            else if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) ==='photoId'){
-                employee.findOne({_id:req.body._id},{'photoid':1,'_id':0})
-                    .then((response)=>{
-                        fs.rm(response.photoid,(err)=>{
-                            console.log(err);
-                        });
-                    }).catch(err=>{
-                        console.log(err);
+             var photoPath = await employee.findOne({_id:req.body._id},{'photo':1,'_id':0});
+                if(photoPath !==null){ 
+                    fs.rm(photoPath.photo,(err)=>{
+                        console.log(err)
                     });
+                }   
+            } else if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) ==='photoId'){
+             var photoIdPath = await employee.findOne({_id:req.body._id},{'photoid':1,'_id':0});
+                if(photoIdPath !==null){ 
+                    fs.rm(photoIdPath.photoid,(err)=>{
+                        console.log(err)
+                    });
+                }                   
             }
         }else{
-            return fs.mkdirSync(dirpath, error => callback(error,dirpath));
+             fs.mkdirSync(dirpath, error => console.log(error));
         }
 
         callback(null,dirpath)
@@ -51,7 +46,6 @@ const upload=multer({storage});
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
-    console.log(req.files);
     var hashedPassword= saltedCrypt.encrypt(req.body.password);
     var empschema=new employee({
                                 dateofjoining:req.body.dateofjoining,
@@ -105,7 +99,7 @@ router.post("/registration",upload.any(),async(req,res)=>{
 
 
 router.put("/update",upload.any(),async(req,res)=>{
-    
+    console.log(req.body);
     var hashedPassword=  saltedCrypt.encrypt(req.body.password);
 
     var getDoc={_id:req.body._id};
