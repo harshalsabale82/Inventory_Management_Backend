@@ -3,7 +3,7 @@ const Mongo=require("mongoose");
 const url="mongodb+srv://imuser_1:6j66NKam3Lt8uXHE@cluster0.mdzsd.mongodb.net/EmployeeDB?retryWrites=true&w=majority";
 //const url="mongodb://localhost:27017/InfoDB"
 
-Mongo.connect(url,{useNewUrlParser:true,useUnifiedTopology:true},(err,res)=>{
+const connection=Mongo.createConnection(url,{useNewUrlParser:true,useUnifiedTopology:true},(err,res)=>{
     if(err) throw err;
     else{
         console.log("Connected to database");
@@ -37,23 +37,13 @@ const attendee = new Mongo.Schema({
     halfDay:{type:Number,required:true}
 })
 
-var newVoucher= new Mongo.Schema({
-    voucherNo:{type:String,required:true,unique:true},
-    date:{type:Date,required:true},
-    eventCompany:{type:String,required:true},
-    venue:{type:String,required:true},
-    contactPersonName:{type:Number,required:true},
-    contactPersonMobile:{type:String,required:true},
-    team:{userid:{type:String,required:true}},
-    vehicle:{type:String,required:true}
-});
 
-const Employee=Mongo.model("Employee",empSchema);
-const Attendee=Mongo.model("Attendee",attendee,"attendance");
-const Voucher=Mongo.model("Voucher",newVoucher,"voucherDetails");
+
+const Employee=connection.model("Employee",empSchema);
+const Attendee=connection.model("Attendee",attendee,"attendance");
+
 
 module.exports={
     employee: Employee, 
-    attendee: Attendee,
-    voucher: Voucher
+    attendee: Attendee
 }

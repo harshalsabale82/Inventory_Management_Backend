@@ -16,17 +16,16 @@ const storage=multer.diskStorage({
         var dirpath= "./uploads/"+req.body.userid;
         
         if(fs.existsSync(dirpath)==true){
-            if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) === 'photo'){
-             var photoPath = await employee.findOne({_id:req.body._id},{'photo':1,'_id':0});
+        var photoPath = await employee.findOne({_id:req.body._id},{'photo':1,'photoid':1,'_id':0}); 
+            if(file.fieldname === 'photo'){
                 if(photoPath !==null){ 
                     fs.rm(photoPath.photo,(err)=>{
                         console.log(err)
                     });
                 }   
-            } else if(file.originalname.substr(0, file.originalname.lastIndexOf('.')) ==='photoId'){
-             var photoIdPath = await employee.findOne({_id:req.body._id},{'photoid':1,'_id':0});
-                if(photoIdPath !==null){ 
-                    fs.rm(photoIdPath.photoid,(err)=>{
+            } else if(file.fieldname ==='photoId'){
+                if(photoPath !==null){ 
+                    fs.rm(photoPath.photoid,(err)=>{
                         console.log(err)
                     });
                 }                   

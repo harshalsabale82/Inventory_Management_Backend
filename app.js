@@ -28,7 +28,7 @@ app.use('/uploads',express.static('uploads'))
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/employee',empMapping);
-app.use('/voucher',voucher);
+app.use('/event',voucher);
 
 
 // catch 404 and forward to error handler

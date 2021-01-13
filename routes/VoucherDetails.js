@@ -1,22 +1,27 @@
 const express= require("express");
 const router=express.Router();
-const {voucher}=require("./collection/Schemas")
+const {voucher}=require("./collection/voucherSchema");
 
-router.post("/Voucher",async(req,res)=>{
+router.post("/newVoucher",async(req,res)=>{
+    console.log(req.body);
     var newVoucher= new voucher({
                                 voucherNo: req.body.voucherNo,
-                                date: req.body.date,
+                                dateOfVoucher: req.body.dateOfVoucher,
                                 eventCompany: req.body.eventCompany,
                                 venue: req.body.venue,
-                                contactPersonName: req.body.contactPersonName,
-                                contactPersonNumber: req.body.contactPersonNumber,
-                                team: req.body.team,
+                                contactPersonName: req.body.contactPrsnName,
+                                contactPersonMobile: req.body.contactPrsnMob,
+                                team: req.body.crew,
                                 vehicle: req.body.vehicle
                                 });
 
             try {
-                var result = newVoucher.save();
-                res.send("Success!");
+                var result =await newVoucher.save((err)=>{
+                    if(err){
+                        console.log(err);
+                    }
+                });
+                res.send(result);
             } catch (error) {
                 res.send(error);
             }
