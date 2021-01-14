@@ -10,13 +10,17 @@ const connection = mongo.createConnection(url,{useNewUrlParser:true,useUnifiedTo
 });
 
 const newVoucher = new mongo.Schema({
-    voucherNo:{type:String,required:true,unique:true},
+    voucherNo:{type:Number,required:true,unique:true},
     dateOfVoucher:{type:Date,required:true},
     eventCompany:{type:String,required:true},
     venue:{type:String,required:true},
     contactPersonName:{type:String,required:true},
     contactPersonMobile:{type:Number,required:true},
-    team:{type:String,required:true},
+    team:[{
+        userid:{type:String,required:true},
+        fullName:{type:String,required:true}
+        } 
+    ],
     vehicle:{type:String,required:true}
 })
 

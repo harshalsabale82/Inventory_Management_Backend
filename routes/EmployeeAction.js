@@ -231,5 +231,9 @@ router.get("/attendance/:id",async(req,res)=>{
     .catch(err => console.log(err))
 });
 
+router.get("/department",async(req,res)=>{
+    var result = await employee.find().distinct('department',(err)=>{console.log(err)});
+    res.send(result);
+})
 
 module.exports=router; 
