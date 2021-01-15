@@ -45,6 +45,7 @@ const upload=multer({storage});
 
 // make resgistration of the employee
 router.post("/registration",upload.any(),async(req,res)=>{
+
     var hashedPassword= saltedCrypt.encrypt(req.body.password);
     var empschema=new employee({
                                 dateofjoining:req.body.dateofjoining,
@@ -147,7 +148,7 @@ router.put("/update",upload.any(),async(req,res)=>{
     
     
     try {
-        var result= await employee.updateOne(getDoc,updatedValues,(err,res)=>{
+        var result= await employee.updateOne(getDoc,updatedValues,(err)=>{
             if(err)
                 throw err;
             else
@@ -184,9 +185,9 @@ try{
 }
 });
 
-router.delete("/delete",async(req,res)=>{
-        
-        var dirName =await employee.findOne({_id:req.body._id},{'userid':1,'_id':0});
+router.delete("/delete/:id",async(req,res)=>{
+
+        var dirName =await employee.findById(req.params.id,{'userid':1,'_id':0});
             
          fs.rm('./uploads/'+dirName.userid,{recursive:true,force:true},(err)=>{
              if(err){
@@ -194,7 +195,7 @@ router.delete("/delete",async(req,res)=>{
              }
          });
 
-         await employee.deleteOne({_id:req.body._id},(err)=>{
+         await employee.findByIdAndDelete(req.params.id,(err)=>{
              if(!err){
             console.log("Entry deleted Successfully!");
             }else{
@@ -202,7 +203,7 @@ router.delete("/delete",async(req,res)=>{
             }    
         });
 
-           await attendee.deleteOne({_id:req.body._id},(err)=>{
+           await attendee.findByIdAndDelete(req.params.id,(err)=>{
                 if(err){
                     res.send(err);
                 }else(
