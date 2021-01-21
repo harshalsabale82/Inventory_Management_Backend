@@ -8,15 +8,17 @@ const multer=require("multer");
 const path=require("path");
 const fs=require("fs");
 
-
+var errormsg="UserId already exists";
 
 const storage=multer.diskStorage({
     destination:async(req,file,callback)=>{
             
-        var dirpath= "./uploads/"+req.body.userid;
+        var dirpath= "./uploads/photoAndPhotoid/"+req.body.userid;
         
-        if(fs.existsSync(dirpath)==true){
-        var photoPath = await employee.findOne({_id:req.body._id},{'photo':1,'photoid':1,'_id':0}); 
+        if(fs.existsSync(dirpath)===true){
+            console.log("this is put request")
+            var photoPath = await employee.findOne({_id:req.body._id},{'photo':1,'photoid':1,'_id':0});
+
             if(file.fieldname === 'photo'){
                 if(photoPath !==null){ 
                     fs.rm(photoPath.photo,(err)=>{
@@ -30,11 +32,20 @@ const storage=multer.diskStorage({
                     });
                 }                   
             }
+
+            callback(null,dirpath);
+
         }else{
-             fs.mkdirSync(dirpath, error => console.log(error));
+
+            if(fs.existsSync(dirpath)){
+                throw errormsg
+            }else{
+             fs.mkdirSync(dirpath, error =>{});
+              callback(null,dirpath) 
+            }
+            
         }
 
-        callback(null,dirpath)
     },
     filename:(req,file,callback)=>{
         callback(null,file.originalname);
@@ -44,8 +55,7 @@ const storage=multer.diskStorage({
 const upload=multer({storage});
 
 // make resgistration of the employee
-router.post("/registration",upload.any(),async(req,res)=>{
-
+router.post("/registration",upload.any(),async (req,res,next)=>{
     var hashedPassword= saltedCrypt.encrypt(req.body.password);
     var empschema=new employee({
                                 dateofjoining:req.body.dateofjoining,
@@ -70,36 +80,30 @@ router.post("/registration",upload.any(),async(req,res)=>{
                                     absent:0
                                     });
 
-    empschema
-        .save()
-        .then((result) => {
-            console.log(result);
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send(500).json({
-                error: err,
-            });
-        });
-
-    attendanceSchema
-        .save()
-        .then((result) => {
-            res.status(201).json({
-                message: "Employee and Attendee created successfully"})
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send(500).json({
-                error: err,
-            });
-        });
+    try {
+        var empResult= await empschema.save()
+       if(empResult!=null){
+            var attendeeResult= await attendanceSchema.save()
+                if(attendeeResult!=null){
+                    res.json({"Message":"Entry Created Successfully!"});
+                }else{
+                    res.json({"Error":"Error has occurred"});
+                }    
+       } 
+    } catch (error) {
+ 
+        res.json({"errorMessage":errormsg})
+    }
         
 });
 
 
 router.put("/update",upload.any(),async(req,res)=>{
-    console.log(req.body);
+try {
+    
+} catch (error) {
+    
+}
     var hashedPassword=  saltedCrypt.encrypt(req.body.password);
 
     var getDoc={_id:req.body._id};
@@ -148,15 +152,14 @@ router.put("/update",upload.any(),async(req,res)=>{
     
     
     try {
-        var result= await employee.updateOne(getDoc,updatedValues,(err)=>{
-            if(err)
-                throw err;
-            else
-            console.log("updated")
-        });
-        res.send(result);
+        var result= await employee.updateOne(getDoc,updatedValues)
+        if(result!=null){
+            res.json({"Message":"Entry updated successfully"})
+        }else{
+            res.json({"error":"Failed to update entry"})
+        }
     } catch (error) {
-        res.send(error);
+        res.json({"error":error});
     }
 });
 
@@ -177,41 +180,37 @@ try{
         var obj1= await attendee.updateOne({_id:getDoc},updatedValues);
         obj.push(obj1);
     }
-    res.status(200).json({
-        message:"Attendance marked"
-    });
+        if(Object.keys(req.body).length == obj.length){
+            res.json({"Message": "Attendance marked successfully!"});
+        }else{
+            res.json({"error":"unable to mark attendance"});
+        }
 }catch(error){
-    res.send(error);
+    res.json({"error":error});
 }
 });
 
 router.delete("/delete/:id",async(req,res)=>{
 
+     try {
         var dirName =await employee.findById(req.params.id,{'userid':1,'_id':0});
             
-         fs.rm('./uploads/'+dirName.userid,{recursive:true,force:true},(err)=>{
-             if(err){
-                 console.log(err);
-             }
-         });
-
-         await employee.findByIdAndDelete(req.params.id,(err)=>{
-             if(!err){
-            console.log("Entry deleted Successfully!");
-            }else{
+        fs.rm('./uploads/'+dirName.userid,{recursive:true,force:true},(err)=>{
+            if(err){
                 console.log(err);
-            }    
+            }
         });
 
-           await attendee.findByIdAndDelete(req.params.id,(err)=>{
-                if(err){
-                    res.send(err);
-                }else(
-                    res.status(202).json({
-                        message:'Entry Deleted'
-                    })
-                )
-            });       
+       var empResult= await employee.findByIdAndDelete(req.params.id)
+       var attendeeResult= await attendee.findByIdAndDelete(req.params.id);
+
+       if(empResult!==null && attendeeResult !==null){
+        res.json({"Message":"Entry Deleted Successfully"});
+       }
+
+     } catch (error) {
+         res.json({"Error":error});
+     }         
 });
 
 router.get("/",async(req,res)=>{

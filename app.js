@@ -9,7 +9,8 @@ var CORS=require('cors');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const empMapping=require("./routes/EmployeeAction");
-const voucher= require('./routes/VoucherDetails');
+const event= require('./routes/eventDetails');
+const expense= require('./routes/expense')
 var app = express();
 
 // view engine setup
@@ -28,7 +29,8 @@ app.use('/uploads',express.static('uploads'))
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/employee',empMapping);
-app.use('/event',voucher);
+app.use('/event',event);
+app.use('/expense',expense);
 
 
 // catch 404 and forward to error handler

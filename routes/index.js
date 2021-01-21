@@ -6,7 +6,6 @@ router.get('/', function(req, res, next) {
 });
 
 router.post("/uploads",(req,res)=>{
- var data;
   res.redirect("/");
 });
 

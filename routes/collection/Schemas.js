@@ -37,13 +37,42 @@ const attendee = new Mongo.Schema({
     halfDay:{type:Number,required:true}
 })
 
+const newVoucher = new Mongo.Schema({
+    voucherNo:{type:Number,required:true,unique:true},
+    dateOfVoucher:{type:Date,required:true},
+    eventCompany:{type:String,required:true},
+    venue:{type:String,required:true},
+    contactPersonName:{type:String,required:true},
+    contactPersonMobile:{type:Number,required:true},
+    team:[{
+        userid:{type:String,required:true},
+        fullName:{type:String,required:true}
+        } 
+    ],
+    vehicle:{type:String,required:true}
+})
 
+const newdailyExpense= new Mongo.Schema({
+    voucherNo:{type:Number,required:true,unique:true},
+    dateOfVoucher:{type:Date,required:true},
+    amountPaid:{type:Number,required:true},
+    paidTo:{type:String,required:true},
+    paidBy:{type:String,required:true},
+    remark:{type:String,required:true},
+    paymentMode:{type:String,required:true},
+    paymentSource:{type:String,required:false},
+    photo:{type:String,required:true}
+})
 
+const Voucher= connection.model('Voucher',newVoucher);
 const Employee=connection.model("Employee",empSchema);
 const Attendee=connection.model("Attendee",attendee,"attendance");
+const dailyExpenses=connection.model("Expense",newdailyExpense);
 
 
 module.exports={
     employee: Employee, 
-    attendee: Attendee
+    attendee: Attendee,
+    voucher: Voucher,
+    dailyExpense: dailyExpenses
 }
